@@ -3,16 +3,18 @@ package com.springboot.ipl_dashboard.data;
 import com.springboot.ipl_dashboard.model.Match;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
 @Slf4j
+@Component
 public class MatchDataProcessor implements ItemProcessor <MatchInput, Match> {
 
     @Override
     public Match process(final MatchInput matchInput) {
-
-        return Match.builder()
+        log.info("starting MatchDataProcessor step");
+        Match match = Match.builder()
                 .id(Long.parseLong(matchInput.getId()))
                 .season(matchInput.getSeason())
                 .city(matchInput.getCity())
@@ -20,8 +22,6 @@ public class MatchDataProcessor implements ItemProcessor <MatchInput, Match> {
                 .matchType(matchInput.getMatch_type())
                 .playerOfMatch(matchInput.getPlayer_of_match())
                 .venue(matchInput.getVenue())
-                .team1(matchInput.getTeam1())
-                .team2(matchInput.getTeam2())
                 .tossWinner(matchInput.getToss_winner())
                 .tossDecision(matchInput.getToss_decision())
                 .matchWinner(matchInput.getWinner())
@@ -33,5 +33,22 @@ public class MatchDataProcessor implements ItemProcessor <MatchInput, Match> {
                 .umpire1(matchInput.getUmpire1())
                 .umpire2(matchInput.getUmpire2())
                 .build();
+
+        // set team1 and team2 depending on innings order
+        String firstInningsTeam, secondInningsTeam;
+        if ("bat".equals(matchInput.getToss_decision())) {
+            firstInningsTeam = matchInput.getToss_winner();
+            secondInningsTeam = matchInput.getToss_winner().equals(matchInput.getTeam1())
+                    ? matchInput.getTeam2() : matchInput.getTeam1();
+        } else {
+            secondInningsTeam = matchInput.getToss_winner();
+            firstInningsTeam = matchInput.getToss_winner().equals(matchInput.getTeam1())
+                    ? matchInput.getTeam2() : matchInput.getTeam1();
+        }
+        match.setTeam1(firstInningsTeam);
+        match.setTeam2(secondInningsTeam);
+
+        log.info("completed MatchDataProcessor step");
+        return match;
     }
 }
