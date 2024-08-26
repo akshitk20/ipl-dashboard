@@ -1,5 +1,8 @@
 package com.springboot.ipl_dashboard.config;
 
+import com.springboot.ipl_dashboard.model.Team;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
@@ -7,24 +10,46 @@ import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Component
 @Slf4j
 public class JobCompletionNotificationListener implements JobExecutionListener {
-    private final JdbcTemplate jdbcTemplate;
+    private final EntityManager em;
 
-    public JobCompletionNotificationListener(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public JobCompletionNotificationListener(EntityManager em) {
+        this.em = em;
     }
 
     @Override
+    @Transactional
     public void afterJob(JobExecution jobExecution) {
         if(jobExecution.getStatus() == BatchStatus.COMPLETED) {
             log.info("!!! JOB FINISHED! Time to verify the results");
+            Map<String, Team> teamData = em.createQuery("select m.team1, count(*) from Match m group by m.team1", Object[].class)
+                    .getResultList()
+                    .stream()
+                    .map(e -> new Team((String) e[0], (long) e[1]))
+                    .collect(Collectors.toMap(Team::getTeamName, team -> team));
+            em.createQuery("select m.team1, count(*) from Match m group by m.team1", Object[].class)
+                    .getResultList()
+                    .forEach(e -> {
+                        Team team = teamData.get((String) e[0]);
+                        team.setTotalMatches(team.getTotalMatches() + (long) e[1]);
+                    });
 
-            jdbcTemplate
-                    .query("SELECT team1, team2, date FROM match",
-                            (rs, row) -> "Team 1 " + rs.getString(1) + " Team 2 " + rs.getString(2) + " Date " + rs.getString(3))
-                    .forEach(person -> log.info("Found <{{}}> in the database.", person));
+            em.createQuery("select m.matchWinner, count(*) from Match m group by m.matchWinner", Object[].class)
+                    .getResultList()
+                    .forEach(e -> {
+                        Team team = teamData.get((String) e[0]);
+                        if (team != null)
+                            team.setTotalWins(team.getTotalWins() + (long) e[1]);
+                    });
+
+            teamData.values().forEach(em::persist);
+            teamData.values().forEach(team -> log.info(String.valueOf(team)));
         }
     }
 }

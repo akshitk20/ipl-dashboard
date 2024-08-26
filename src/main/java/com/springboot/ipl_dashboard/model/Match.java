@@ -15,7 +15,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Data
 @Builder
-@Table(name = "match")
 public class Match {
     @Id
     private long id;
