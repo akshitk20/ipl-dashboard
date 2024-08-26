@@ -6,28 +6,33 @@ import com.springboot.ipl_dashboard.model.Match;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
 @Configuration
 public class BatchConfig {
 
+    private final PlatformTransactionManager platformTransactionManager;
+
     private final String[] FIELD_NAMES = new String[] {
             "id","season","city","date","match_type","player_of_match","venue","team1","team2","toss_winner",
             "toss_decision","winner","result","result_margin","target_runs","target_overs","super_over","method","umpire1","umpire2"
     };
+
+    public BatchConfig(PlatformTransactionManager platformTransactionManager) {
+        this.platformTransactionManager = platformTransactionManager;
+    }
 
     @Bean
     public Job importUserJob(JobRepository jobRepository, Step step1, JobCompletionNotificationListener listener) {
@@ -38,10 +43,9 @@ public class BatchConfig {
     }
 
     @Bean
-    public Step step1(JobRepository jobRepository, DataSourceTransactionManager transactionManager,
-                    JdbcBatchItemWriter<Match> writer) {
+    public Step step1(JobRepository jobRepository, JdbcBatchItemWriter<Match> writer) {
         return new StepBuilder("step1", jobRepository)
-                .<MatchInput, Match> chunk(3, transactionManager)
+                .<MatchInput, Match> chunk(1, platformTransactionManager)
                 .reader(reader())
                 .processor(processor())
                 .writer(writer)
@@ -71,16 +75,5 @@ public class BatchConfig {
                 .dataSource(dataSource)
                 .beanMapped()
                 .build();
-    }
-
-    @Bean
-    public DataSourceTransactionManager transactionManager(DataSource dataSource) {
-        return new DataSourceTransactionManager(dataSource);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(name = "jobLauncherCommandLineRunner")
-    public JobRunner jobLauncherCommandLineRunner(JobLauncher jobLauncher, Job job) {
-        return new JobRunner(jobLauncher, job);
     }
 }

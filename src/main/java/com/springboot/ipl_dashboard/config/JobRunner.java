@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class JobRunner implements CommandLineRunner {
-    private JobLauncher jobLauncher;
+    private final JobLauncher jobLauncher;
 
-    private Job job;
+    private final Job job;
 
     public JobRunner(JobLauncher jobLauncher, Job job) {
         this.jobLauncher = jobLauncher;
