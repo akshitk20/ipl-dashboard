@@ -2,6 +2,7 @@ package com.springboot.ipl_dashboard.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Data
 @Builder
+@Table(name = "match")
 public class Match {
     @Id
     private long id;

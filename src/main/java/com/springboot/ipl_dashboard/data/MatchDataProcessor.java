@@ -3,12 +3,10 @@ package com.springboot.ipl_dashboard.data;
 import com.springboot.ipl_dashboard.model.Match;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
 @Slf4j
-@Component
 public class MatchDataProcessor implements ItemProcessor <MatchInput, Match> {
 
     @Override
