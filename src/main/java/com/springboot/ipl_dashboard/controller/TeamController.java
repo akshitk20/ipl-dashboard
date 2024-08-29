@@ -5,10 +5,7 @@ import com.springboot.ipl_dashboard.model.Team;
 import com.springboot.ipl_dashboard.repository.MatchRepository;
 import com.springboot.ipl_dashboard.repository.TeamRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,5 +24,12 @@ public class TeamController {
         List<Match> matches = matchRepository.findLatestMatchesByTeam(teamName, 4);
         team.setMatches(matches);
         return team;
+    }
+
+    @GetMapping("/team/{teamName}/matches")
+    public List<Match> getAllMatchesForTeam(@PathVariable String teamName,
+                                            @RequestParam(name = "year") int year) {
+
+        return matchRepository.getByTeamNameAndSeason(teamName, teamName,String.valueOf(year));
     }
 }
