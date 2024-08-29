@@ -30,6 +30,6 @@ public class TeamController {
     public List<Match> getAllMatchesForTeam(@PathVariable String teamName,
                                             @RequestParam(name = "year") int year) {
 
-        return matchRepository.getByTeamNameAndSeason(teamName, teamName,String.valueOf(year));
+        return matchRepository.getByTeamNameAndSeason(teamName,String.valueOf(year));
     }
 }

@@ -18,6 +18,6 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
         return getByTeam1OrTeam2OrderByDateDesc(teamName, teamName, PageRequest.of(0,count));
     }
 
-    @Query(value = "select * from Match where (team1=:team1 or team2=:team2) and season=:season",nativeQuery = true)
-    List<Match> getByTeamNameAndSeason(String team1, String team2, String season);
+    @Query(value = "select * from Match where (team1=:team or team2=:team) and season=:season order by date desc",nativeQuery = true)
+    List<Match> getByTeamNameAndSeason(String team, String season);
 }
