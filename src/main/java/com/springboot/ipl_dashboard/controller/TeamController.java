@@ -7,6 +7,8 @@ import com.springboot.ipl_dashboard.repository.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @RestController
@@ -31,5 +33,14 @@ public class TeamController {
                                             @RequestParam(name = "year") int year) {
 
         return matchRepository.getByTeamNameAndSeason(teamName,String.valueOf(year));
+    }
+
+    @GetMapping("/teams")
+    public List<Team> getAllTeams() {
+        List<Team> teams = new ArrayList<>();
+        for (Team team : teamRepository.findAll()) {
+            teams.add(team);
+        }
+        return teams;
     }
 }
